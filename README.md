@@ -1,4 +1,4 @@
-# 📡 SimulaRede — Simulador de Camada Física e Enlace
+# SimulaRede — Simulador de Camada Física e Enlace
 
 [![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)](.)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)](.)
@@ -14,7 +14,7 @@
 
 ---
 
-## 📋 Índice
+## Índice
 
 - [Visão Geral](#-visão-geral)
 - [Arquitetura](#-arquitetura)
@@ -27,7 +27,7 @@
 
 ---
 
-## 🔭 Visão Geral
+## Visão Geral
 
 O **SimulaRede** simula o caminho que uma mensagem percorre desde a digitação pelo usuário até a recepção, passando pelas camadas de Enlace e Física de uma rede de computadores. O sistema é dividido em dois lados — **Transmissor (TX)** e **Receptor (RX)** — que rodam como threads paralelas e se comunicam via socket interno, com uma interface gráfica unificada em GTK.
 
@@ -61,7 +61,7 @@ O **SimulaRede** simula o caminho que uma mensagem percorre desde a digitação 
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 O projeto segue uma arquitetura em camadas com threads separadas para TX e RX:
 
@@ -78,9 +78,9 @@ projeto-tr1/
 
 ---
 
-## ✅ Requisitos do Trabalho
+## Requisitos do Trabalho
 
-### 🔌 Camada Física
+### Camada Física
 
 #### Modulação Digital (Banda-Base)
 - [ ] **NRZ-Polar** — bit 1 = +V, bit 0 = -V
@@ -93,7 +93,7 @@ projeto-tr1/
 - [ ] **QPSK** — Phase Shift Keying com 4 fases (2 bits/símbolo)
 - [ ] **16-QAM** — Quadrature Amplitude Modulation (4 bits/símbolo)
 
-### 🔗 Camada de Enlace
+### Camada de Enlace
 
 #### Enquadramento
 - [ ] **Contagem de caracteres**
@@ -116,14 +116,14 @@ projeto-tr1/
 - [ ] **Socket interno** (socketpair) ligando TX e RX
 - [ ] **Sinais implementados em V/W** (valores elétricos reais)
 
-### 📄 Relatório (mínimo 3 páginas)
+### Relatório (mínimo 3 páginas)
 - [ ] Capa com nome do simulador e membros
 - [ ] Introdução com visão geral do simulador
 - [ ] Implementação com diagramas e decisões de projeto
 - [ ] Seção de membros com atividades desenvolvidas
 - [ ] Conclusão com dificuldades encontradas
 
-### 📁 Arquivos de Código Exigidos
+### Arquivos de Código Exigidos
 - [ ] `CamadaFisica` — implementação das funções de camada física
 - [ ] `CamadaEnlace` — implementação das funções de camada de enlace
 - [ ] `InterfaceGUI` — entrada de dados e resultados gráficos
@@ -131,16 +131,16 @@ projeto-tr1/
 
 ---
 
-## 🗓️ Planejamento e Checklist
+## Planejamento e Checklist
 
-### Fase 0 — Setup e Estrutura
+### Setup e Estrutura
 - [ ] Criar repositório e estrutura de pastas
 - [ ] Escrever README inicial
 - [ ] Configurar ambiente Python (venv, dependências)
 - [ ] Criar esqueleto dos arquivos com funções vazias
 - [ ] Configurar GTK no ambiente de desenvolvimento
 
-### Fase 1 — Camada Física: Modulação Digital
+### Camada Física: Modulação Digital
 - [ ] Implementar conversão texto → bits
 - [ ] Implementar NRZ-Polar
 - [ ] Implementar Manchester
@@ -148,37 +148,37 @@ projeto-tr1/
 - [ ] Implementar decodificadores correspondentes
 - [ ] Validar com exemplos dos slides
 
-### Fase 2 — Camada Física: Modulação por Portadora
+### Camada Física: Modulação por Portadora
 - [ ] Implementar gerador de onda portadora senoidal
 - [ ] Implementar ASK (+ demodulação)
 - [ ] Implementar FSK (+ demodulação)
 - [ ] Implementar QPSK com constelação de 4 pontos (+ demodulação)
 - [ ] Implementar 16-QAM com constelação de 16 pontos (+ demodulação)
 
-### Fase 3 — Canal de Comunicação
+### Canal de Comunicação
 - [ ] Implementar socketpair TX ↔ RX
 - [ ] Implementar gerador de ruído gaussiano n(x, σ)
 - [ ] Aplicar ruído sobre o sinal em V/W
 - [ ] Testar comunicação TX → RX isolada
 
-### Fase 4 — Camada de Enlace: Enquadramento
+### Camada de Enlace: Enquadramento
 - [ ] Implementar contagem de caracteres
 - [ ] Implementar FLAG com inserção de bytes
 - [ ] Implementar FLAG com inserção de bits
 - [ ] Implementar desenquadradores correspondentes
 
-### Fase 5 — Camada de Enlace: Detecção de Erros
+### Camada de Enlace: Detecção de Erros
 - [ ] Implementar bit de paridade par
 - [ ] Implementar checksum
 - [ ] Implementar CRC-32 (IEEE 802) do zero, sem zlib
 - [ ] Validar detecção com erros injetados manualmente
 
-### Fase 6 — Camada de Enlace: Correção de Erros
+### Camada de Enlace: Correção de Erros
 - [ ] Implementar codificador Hamming
 - [ ] Implementar decodificador/corretor Hamming
 - [ ] Validar correção de 1 bit
 
-### Fase 7 — Interface Gráfica GTK
+### Interface Gráfica GTK
 - [ ] Montar janela principal com campos de configuração
 - [ ] Adicionar campo de entrada de texto
 - [ ] Adicionar seletores de modulação, enquadramento, detecção/correção
@@ -188,14 +188,14 @@ projeto-tr1/
 - [ ] Exibir bits em cada etapa do pipeline
 - [ ] Exibir texto recuperado no receptor
 
-### Fase 8 — Integração e Testes
+### Integração e Testes
 - [ ] Integrar todas as camadas no simulador.py
 - [ ] Testar pipeline completo TX → RX
 - [ ] Testar diferentes combinações de modulação + enquadramento + detecção
 - [ ] Testar com ruído alto e verificar detecção/correção de erros
 - [ ] Verificar legibilidade, comentários e modularização do código
 
-### Fase 9 — Relatório e Entrega
+### Relatório e Entrega
 - [ ] Escrever introdução e visão geral
 - [ ] Escrever seção de implementação com diagramas
 - [ ] Escrever conclusão
@@ -204,7 +204,7 @@ projeto-tr1/
 
 ---
 
-## 🚀 Extras e Melhorias
+## Extras e Melhorias
 
 > Funcionalidades além do exigido para elevar o nível do projeto:
 
@@ -227,7 +227,7 @@ projeto-tr1/
 
 ---
 
-## 🗂️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 projeto-tr1/
@@ -255,7 +255,7 @@ projeto-tr1/
 
 ---
 
-## ▶️ Como Executar
+## Como Executar
 
 ### Pré-requisitos
 
