@@ -67,13 +67,41 @@ O projeto segue uma arquitetura em camadas com threads separadas para TX e RX:
 
 ```
 projeto-tr1/
-├── simulador.py          # Ponto de entrada — orquestra threads e GUI
-├── transmissor.py        # Lógica do lado TX
-├── receptor.py           # Lógica do lado RX
-├── canal.py              # Meio de comunicação + ruído gaussiano
-├── camada_fisica.py      # Todas as modulações digitais e por portadora
-├── camada_enlace.py      # Enquadramento, detecção e correção de erros
-└── interface_gui.py      # Interface gráfica GTK com gráficos
+├── simulador.py
+├── transmissor.py
+├── receptor.py
+├── canal.py
+├── interface_gui.py
+│
+├── camada_fisica/
+│   ├── __init__.py
+│   ├── banda_base/
+│   │   ├── __init__.py
+│   │   ├── nrz_polar.py
+│   │   ├── manchester.py
+│   │   └── bipolar.py
+│   └── portadora/
+│       ├── __init__.py
+│       ├── ask.py
+│       ├── fsk.py
+│       ├── qpsk.py
+│       └── qam16.py
+│
+├── camada_enlace/
+│   ├── __init__.py
+│   ├── enquadramento/
+│   │   ├── __init__.py
+│   │   ├── contagem.py
+│   │   ├── flag_bytes.py
+│   │   └── flag_bits.py
+│   └── erros/
+│       ├── __init__.py
+│       ├── paridade.py
+│       ├── checksum.py
+│       ├── crc32.py
+│       └── hamming.py
+│
+└── tests/
 ```
 
 ---
