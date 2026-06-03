@@ -1,4 +1,4 @@
-def enquadrar(bits):
+def enquadrar_contagem(bits):
     quantidade_bytes = len(bits) // 8
     header = format(quantidade_bytes, '08b')
     return header + bits
