@@ -1,4 +1,5 @@
-from paridade import add_paridade, verify_paridade
+# paridade_test.py
+from camada_enlace.deteccao_erros.paridade import add_paridade, verify_paridade
 from utils import text_to_bits
 
 texto = "Teste"

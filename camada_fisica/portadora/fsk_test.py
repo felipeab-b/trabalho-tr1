@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-from fsk import codificar_fsk, decodificar_fsk
+# fsk_test.py
+from camada_fisica.portadora.fsk import codificar_fsk, decodificar_fsk
 from utils import text_to_bits
 
 texto = "A"

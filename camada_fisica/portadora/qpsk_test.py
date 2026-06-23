@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-from qpsk import codificar_qpsk, decodificar_qpsk
+# qpsk_test.py
+from camada_fisica.portadora.qpsk import codificar_qpsk, decodificar_qpsk
 from utils import text_to_bits
 
 texto = "A"

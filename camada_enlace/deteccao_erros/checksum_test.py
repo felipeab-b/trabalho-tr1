@@ -1,4 +1,5 @@
-from checksum import add_checksum, verify_checksum
+# checksum_test.py
+from camada_enlace.deteccao_erros.checksum import add_checksum, verify_checksum
 from utils import text_to_bits
 
 texto = "Teste"

@@ -1,4 +1,5 @@
-from contagem import enquadrar_contagem, desenquadrar_contagem
+# contagem_test.py
+from camada_enlace.enquadramento.contagem import enquadrar_contagem, desenquadrar_contagem
 from utils import bits_to_text, text_to_bits
 
 texto = "Teste"

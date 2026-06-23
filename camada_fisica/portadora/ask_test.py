@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-from ask import codificar_ask, decodificar_ask
+# ask_test.py
+from camada_fisica.portadora.ask import codificar_ask, decodificar_ask
 from utils import text_to_bits
 
 texto = "A"

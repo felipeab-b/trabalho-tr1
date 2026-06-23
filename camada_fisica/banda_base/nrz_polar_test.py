@@ -1,4 +1,6 @@
-from nrz_polar import codificar_nrz, decodificar_nrz
+# nrz_polar_test.py
+from camada_fisica.banda_base.nrz_polar import codificar_nrz, decodificar_nrz
+from utils import text_to_bits, bits_to_text
 from utils import bits_to_text, text_to_bits
 
 texto = "A"

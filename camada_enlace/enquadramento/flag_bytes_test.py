@@ -1,4 +1,5 @@
-from flag_bytes import enquadrar_flag_bytes, desenquadrar_flag_bytes
+# flag_bytes_test.py
+from camada_enlace.enquadramento.flag_bytes import enquadrar_flag_bytes, desenquadrar_flag_bytes
 from utils import bits_to_text, text_to_bits
 
 FLAG = '01111110'

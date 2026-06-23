@@ -1,4 +1,5 @@
-from bipolar import codificar_bipolar, decodificar_bipolar
+# bipolar_test.py
+from camada_fisica.banda_base.bipolar import codificar_bipolar, decodificar_bipolar
 from utils import text_to_bits, bits_to_text
 
 texto = "A"
