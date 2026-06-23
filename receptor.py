@@ -17,6 +17,8 @@ def iniciar_rx(sock, mod, enq, edc, callback):
     sinal = json.loads(dados.decode('utf-8'))
 
     quadro = decodificar_mod(sinal)
+    if isinstance(quadro, list):
+        quadro = ''.join(quadro)
     bits_com_edc = desenquadrar(quadro)
     edc_ok = verify_edc(bits_com_edc)
 
