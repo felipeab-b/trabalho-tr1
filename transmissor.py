@@ -5,7 +5,7 @@ from utils import text_to_bits
 def iniciar_tx(sock, texto, mod, enq, edc, callback_etapas=None):
     codificar_mod, _ = MODULACOES[mod]
     enquadrar, _ = ENQUADRAMENTOS[enq]
-    add_edc, _ = DETECCAO_CORRECAO[edc]
+    add_edc, _, _ = DETECCAO_CORRECAO[edc]
 
     bits = text_to_bits(texto)
     bits_com_edc = add_edc(bits)

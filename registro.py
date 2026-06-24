@@ -33,8 +33,8 @@ ENQUADRAMENTOS = {
 }
 
 DETECCAO_CORRECAO = {
-    'paridade': (add_paridade, verify_paridade),
-    'checksum': (add_checksum, verify_checksum),
-    'crc': (add_crc, verify_crc),
-    'hamming': (hamming74_codificar, hamming74_decodificar),
+    'paridade': (add_paridade, verify_paridade, 'verificacao'),
+    'checksum': (add_checksum, verify_checksum, 'verificacao'),
+    'crc': (add_crc, verify_crc, 'verificacao'),
+    'hamming': (hamming74_codificar, hamming74_decodificar, 'correcao'),
 }

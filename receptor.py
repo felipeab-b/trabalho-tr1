@@ -11,7 +11,7 @@ TAMANHO_EDC = {
 def iniciar_rx(sock, mod, enq, edc, callback):
     _, decodificar_mod = MODULACOES[mod]
     _, desenquadrar = ENQUADRAMENTOS[enq]
-    _, verify_edc = DETECCAO_CORRECAO[edc]
+    _, verify_edc, tipo_edc = DETECCAO_CORRECAO[edc]
 
     dados = sock.recv(65536)
     sinal_recebido = json.loads(dados.decode('utf-8'))
@@ -21,10 +21,14 @@ def iniciar_rx(sock, mod, enq, edc, callback):
         quadro_demodulado = ''.join(quadro_demodulado)
 
     bits_com_edc = desenquadrar(quadro_demodulado)
-    edc_ok = verify_edc(bits_com_edc)
 
-    tamanho_edc = TAMANHO_EDC[edc]
-    bits_finais = bits_com_edc[:-tamanho_edc]
+    if tipo_edc == 'correcao':
+        bits_finais = verify_edc(bits_com_edc)
+        edc_ok = True
+    else:
+        edc_ok = verify_edc(bits_com_edc)
+        bits_finais = bits_com_edc[:-TAMANHO_EDC[edc]]
+
     texto_final = bits_to_text(bits_finais)
 
     etapas = {

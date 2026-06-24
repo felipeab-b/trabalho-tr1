@@ -118,7 +118,7 @@ combo_enq.set_active(0)
 linha_controles.pack_start(combo_enq, False, False, 0)
 
 combo_edc = Gtk.ComboBoxText()
-for nome in ['paridade', 'checksum', 'crc']:
+for nome in ['paridade', 'checksum', 'crc', 'hamming']:
     combo_edc.append_text(nome)
 combo_edc.set_active(0)
 linha_controles.pack_start(combo_edc, False, False, 0)
