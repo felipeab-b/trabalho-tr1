@@ -10,25 +10,41 @@ from simulador import simular
 figura = Figure(figsize=(5, 2))
 ax = figura.add_subplot(1, 1, 1)
 
-def plotar_sinal(sinal):
+def plotar_sinal(sinal, titulo):
     ax.clear()
     ax.step(range(len(sinal)), sinal, where='post')
-    ax.set_title("Sinal TX")
+    ax.set_title(titulo)
     figura.canvas.draw()
 
-def atualizar_tela(texto_recuperado, sinal, edc_ok):
-    GLib.idle_add(label_resultado.set_text, f"Recebido: {texto_recuperado} | EDC OK: {edc_ok}")
-    GLib.idle_add(plotar_sinal, sinal)
+def mostrar_etapas_tx(etapas):
+    texto_tx = (
+        f"TX → Texto: {etapas['texto_original']}\n"
+        f"Bits: {etapas['bits']}\n"
+        f"Com EDC: {etapas['bits_com_edc']}\n"
+        f"Quadro: {etapas['quadro']}"
+    )
+    GLib.idle_add(label_tx.set_text, texto_tx)
+    GLib.idle_add(plotar_sinal, etapas['sinal'], "Sinal TX")
+
+def mostrar_etapas_rx(etapas):
+    texto_rx = (
+        f"RX → Quadro demodulado: {etapas['quadro_demodulado']}\n"
+        f"Com EDC: {etapas['bits_com_edc']}\n"
+        f"EDC OK: {etapas['edc_ok']}\n"
+        f"Bits finais: {etapas['bits_finais']}\n"
+        f"Texto recuperado: {etapas['texto_final']}"
+    )
+    GLib.idle_add(label_rx.set_text, texto_rx)
 
 def on_enviar(button):
     texto = entry.get_text()
     mod = combo_mod.get_active_text()
     enq = combo_enq.get_active_text()
     edc = combo_edc.get_active_text()
-    simular(texto, mod, enq, edc, atualizar_tela)
+    simular(texto, mod, enq, edc, mostrar_etapas_rx, mostrar_etapas_tx)
 
 window = Gtk.Window(title="SimulaRede")
-window.set_default_size(600, 500)
+window.set_default_size(700, 600)
 window.connect("destroy", Gtk.main_quit)
 
 box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -60,8 +76,13 @@ button = Gtk.Button(label="Enviar")
 button.connect("clicked", on_enviar)
 box.pack_start(button, False, False, 0)
 
-label_resultado = Gtk.Label(label="Aguardando...")
-box.pack_start(label_resultado, False, False, 0)
+label_tx = Gtk.Label(label="TX aguardando...")
+label_tx.set_line_wrap(True)
+box.pack_start(label_tx, False, False, 0)
+
+label_rx = Gtk.Label(label="RX aguardando...")
+label_rx.set_line_wrap(True)
+box.pack_start(label_rx, False, False, 0)
 
 canvas = FigureCanvas(figura)
 box.pack_start(canvas, True, True, 0)
