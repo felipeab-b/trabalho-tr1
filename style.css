@@ -26,7 +26,7 @@ label.eyebrow {
     letter-spacing: 1px;
 }
 
-label.painel {
+.painel {
     background-color: #22262e;
     border: 1px solid #2d323c;
     border-radius: 6px;
