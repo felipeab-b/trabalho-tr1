@@ -1,5 +1,5 @@
 import json
-from registro import MODULACOES, ENQUADRAMENTOS, DETECCAO_CORRECAO
+from registro import MODULACOES_BANDA_BASE, MODULACOES_PORTADORA, ENQUADRAMENTOS, DETECCAO_CORRECAO
 from utils import bits_to_text
 
 TAMANHO_EDC = {
@@ -8,15 +8,17 @@ TAMANHO_EDC = {
     'crc': 32,
 }
 
-def iniciar_rx(sock, mod, enq, edc, callback):
-    _, decodificar_mod = MODULACOES[mod]
+def iniciar_rx(sock, mod_base, mod_portadora, enq, edc, callback):
+    _, decodificar_base = MODULACOES_BANDA_BASE[mod_base]
+    _, decodificar_portadora = MODULACOES_PORTADORA[mod_portadora]
     _, desenquadrar = ENQUADRAMENTOS[enq]
     _, verify_edc, tipo_edc = DETECCAO_CORRECAO[edc]
 
     dados = sock.recv(65536)
     sinal_recebido = json.loads(dados.decode('utf-8'))
 
-    quadro_demodulado = decodificar_mod(sinal_recebido)
+    sinal_base_recuperado = decodificar_portadora(sinal_recebido)
+    quadro_demodulado = decodificar_base(sinal_base_recuperado)
     if isinstance(quadro_demodulado, list):
         quadro_demodulado = ''.join(quadro_demodulado)
 
@@ -33,6 +35,7 @@ def iniciar_rx(sock, mod, enq, edc, callback):
 
     etapas = {
         'sinal_recebido': sinal_recebido,
+        'sinal_base_recuperado': sinal_base_recuperado,
         'quadro_demodulado': quadro_demodulado,
         'bits_com_edc': bits_com_edc,
         'edc_ok': edc_ok,

@@ -1,4 +1,3 @@
-# interface_gui.py
 import gi
 import matplotlib
 matplotlib.use('GTK3Agg')
@@ -12,7 +11,6 @@ from simulador import simular
 def carregar_css():
     css_provider = Gtk.CssProvider()
     css_provider.load_from_path("style.css")
-    Gdk.Screen.get_default().get_default()
     screen = Gdk.Screen.get_default()
     Gtk.StyleContext.add_provider_for_screen(
         screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
@@ -68,14 +66,15 @@ def on_enviar(button):
     texto = entry.get_text()
     if not texto:
         return
-    mod = combo_mod.get_active_text()
+    mod_base = combo_mod_base.get_active_text()
+    mod_portadora = combo_mod_portadora.get_active_text()
     enq = combo_enq.get_active_text()
     edc = combo_edc.get_active_text()
-    simular(texto, mod, enq, edc, mostrar_etapas_rx, mostrar_etapas_tx)
+    simular(texto, mod_base, mod_portadora, enq, edc, mostrar_etapas_rx, mostrar_etapas_tx)
 
 # ---------- Construção da janela ----------
 window = Gtk.Window(title="SimulaRede")
-window.set_default_size(820, 640)
+window.set_default_size(900, 680)
 window.connect("destroy", Gtk.main_quit)
 
 root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
@@ -96,43 +95,68 @@ subtitulo.get_style_context().add_class("eyebrow")
 subtitulo.set_halign(Gtk.Align.START)
 root.pack_start(subtitulo, False, False, 0)
 
-# Linha de entrada + controles
-linha_controles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-root.pack_start(linha_controles, False, False, 0)
+# Linha de entrada de texto
+linha_texto = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+root.pack_start(linha_texto, False, False, 0)
 
 entry = Gtk.Entry()
 entry.set_placeholder_text("digite a mensagem...")
 entry.set_hexpand(True)
-linha_controles.pack_start(entry, True, True, 0)
-
-combo_mod = Gtk.ComboBoxText()
-for nome in ['nrz', 'manchester', 'bipolar', 'ask', 'fsk', 'qpsk', 'qam16']:
-    combo_mod.append_text(nome)
-combo_mod.set_active(0)
-linha_controles.pack_start(combo_mod, False, False, 0)
-
-combo_enq = Gtk.ComboBoxText()
-for nome in ['contagem', 'flag_bytes', 'flag_bits']:
-    combo_enq.append_text(nome)
-combo_enq.set_active(0)
-linha_controles.pack_start(combo_enq, False, False, 0)
-
-combo_edc = Gtk.ComboBoxText()
-for nome in ['paridade', 'checksum', 'crc', 'hamming']:
-    combo_edc.append_text(nome)
-combo_edc.set_active(0)
-linha_controles.pack_start(combo_edc, False, False, 0)
+linha_texto.pack_start(entry, True, True, 0)
 
 button = Gtk.Button(label="Enviar")
 button.get_style_context().add_class("enviar")
 button.connect("clicked", on_enviar)
-linha_controles.pack_start(button, False, False, 0)
+linha_texto.pack_start(button, False, False, 0)
+
+# Linha de controles (modulação banda-base | portadora | enquadramento | edc)
+linha_controles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+root.pack_start(linha_controles, False, False, 0)
+
+label_base = Gtk.Label(label="banda-base:")
+label_base.get_style_context().add_class("eyebrow")
+linha_controles.pack_start(label_base, False, False, 0)
+
+combo_mod_base = Gtk.ComboBoxText()
+for nome in ['nrz', 'manchester', 'bipolar']:
+    combo_mod_base.append_text(nome)
+combo_mod_base.set_active(0)
+linha_controles.pack_start(combo_mod_base, False, False, 0)
+
+label_portadora = Gtk.Label(label="portadora:")
+label_portadora.get_style_context().add_class("eyebrow")
+linha_controles.pack_start(label_portadora, False, False, 0)
+
+combo_mod_portadora = Gtk.ComboBoxText()
+for nome in ['nenhum', 'ask', 'fsk', 'qpsk', 'qam16']:
+    combo_mod_portadora.append_text(nome)
+combo_mod_portadora.set_active(0)
+linha_controles.pack_start(combo_mod_portadora, False, False, 0)
+
+label_enq = Gtk.Label(label="quadro:")
+label_enq.get_style_context().add_class("eyebrow")
+linha_controles.pack_start(label_enq, False, False, 0)
+
+combo_enq = Gtk.ComboBoxText()
+for nome in ['nenhum', 'contagem', 'flag_bytes', 'flag_bits']:
+    combo_enq.append_text(nome)
+combo_enq.set_active(0)
+linha_controles.pack_start(combo_enq, False, False, 0)
+
+label_edc = Gtk.Label(label="edc:")
+label_edc.get_style_context().add_class("eyebrow")
+linha_controles.pack_start(label_edc, False, False, 0)
+
+combo_edc = Gtk.ComboBoxText()
+for nome in ['nenhum', 'paridade', 'checksum', 'crc', 'hamming']:
+    combo_edc.append_text(nome)
+combo_edc.set_active(0)
+linha_controles.pack_start(combo_edc, False, False, 0)
 
 # Painéis TX | RX lado a lado
 linha_paineis = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
 root.pack_start(linha_paineis, False, False, 0)
 
-# Painel TX
 painel_tx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 painel_tx.get_style_context().add_class("painel")
 painel_tx.set_hexpand(True)
@@ -150,7 +174,6 @@ painel_tx.pack_start(label_tx_corpo, False, False, 0)
 
 linha_paineis.pack_start(painel_tx, True, True, 0)
 
-# Painel RX
 painel_rx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 painel_rx.get_style_context().add_class("painel")
 painel_rx.set_hexpand(True)

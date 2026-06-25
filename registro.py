@@ -16,10 +16,39 @@ from camada_enlace.deteccao_erros.crc import add_crc, verify_crc
 
 from camada_enlace.correcao_erros.hamming import hamming74_codificar, hamming74_decodificar
 
-MODULACOES = {
+
+def _identidade_codificar(sinal_base):
+    return sinal_base
+
+
+def _identidade_decodificar(sinal):
+    return sinal
+
+
+def _sem_enquadramento(bits):
+    return bits
+
+
+def _sem_desenquadramento(bits):
+    return bits
+
+
+def _sem_edc_adicionar(bits):
+    return bits
+
+
+def _sem_edc_verificar(bits):
+    return bits  
+
+
+MODULACOES_BANDA_BASE = {
     'nrz': (codificar_nrz, decodificar_nrz),
     'manchester': (codificar_manchester, decodificar_manchester),
     'bipolar': (codificar_bipolar, decodificar_bipolar),
+}
+
+MODULACOES_PORTADORA = {
+    'nenhum': (_identidade_codificar, _identidade_decodificar),
     'ask': (codificar_ask, decodificar_ask),
     'fsk': (codificar_fsk, decodificar_fsk),
     'qpsk': (codificar_qpsk, decodificar_qpsk),
@@ -27,12 +56,14 @@ MODULACOES = {
 }
 
 ENQUADRAMENTOS = {
+    'nenhum': (_sem_enquadramento, _sem_desenquadramento),
     'contagem': (enquadrar_contagem, desenquadrar),
     'flag_bytes': (enquadrar_flag_bytes, desenquadrar_flag_bytes),
     'flag_bits': (enquadrar_flag_bits, desenquadrar_flag_bits),
 }
 
 DETECCAO_CORRECAO = {
+    'nenhum': (_sem_edc_adicionar, _sem_edc_verificar, 'correcao'),
     'paridade': (add_paridade, verify_paridade, 'verificacao'),
     'checksum': (add_checksum, verify_checksum, 'verificacao'),
     'crc': (add_crc, verify_crc, 'verificacao'),
