@@ -29,18 +29,27 @@ matplotlib.rcParams.update({
     'font.family': 'monospace',
 })
 
-figura = Figure(figsize=(6, 2.2))
-ax = figura.add_subplot(1, 1, 1)
+figura = Figure(figsize=(6, 3.2))
+ax_tx = figura.add_subplot(2, 1, 1)
+ax_rx = figura.add_subplot(2, 1, 2)
 
-def plotar_sinal(sinal, titulo):
-    ax.clear()
-    ax.step(range(len(sinal)), sinal, where='post', color='#5b8cff', linewidth=1.5)
-    ax.set_title(titulo, color='#e6e9ef', fontsize=11, fontfamily='monospace')
-    ax.grid(True, alpha=0.3)
+def plotar_sinais(sinal_tx, sinal_rx):
+    ax_tx.clear()
+    ax_tx.plot(sinal_tx, color='#5b8cff', linewidth=1.2)
+    ax_tx.set_title("sinal TX (antes do ruído)", color='#e6e9ef', fontsize=10, fontfamily='monospace')
+    ax_tx.grid(True, alpha=0.3)
+
+    ax_rx.clear()
+    ax_rx.plot(sinal_rx, color='#ff7a5b', linewidth=1.2)
+    ax_rx.set_title("sinal no canal (após ruído)", color='#e6e9ef', fontsize=10, fontfamily='monospace')
+    ax_rx.grid(True, alpha=0.3)
+
     figura.tight_layout()
     figura.canvas.draw()
 
 # ---------- Lógica ----------
+ultimo_sinal_tx = {'valor': []}
+
 def mostrar_etapas_tx(etapas):
     texto_tx = (
         f"texto:    {etapas['texto_original']}\n"
@@ -48,8 +57,11 @@ def mostrar_etapas_tx(etapas):
         f"+ edc:    {etapas['bits_com_edc']}\n"
         f"quadro:   {etapas['quadro']}"
     )
+    ultimo_sinal_tx['valor'] = etapas['sinal']
     GLib.idle_add(label_tx_corpo.set_text, texto_tx)
-    GLib.idle_add(plotar_sinal, etapas['sinal'], "sinal — canal de transmissão")
+
+def mostrar_etapas_canal(etapas):
+    GLib.idle_add(plotar_sinais, ultimo_sinal_tx['valor'], etapas['sinal_ruidoso'])
 
 def mostrar_etapas_rx(etapas):
     status = "✓ ok" if etapas['edc_ok'] else "✗ erro detectado"
@@ -70,11 +82,20 @@ def on_enviar(button):
     mod_portadora = combo_mod_portadora.get_active_text()
     enq = combo_enq.get_active_text()
     edc = combo_edc.get_active_text()
-    simular(texto, mod_base, mod_portadora, enq, edc, mostrar_etapas_rx, mostrar_etapas_tx)
+    media_ruido = spin_media.get_value()
+    desvio_ruido = spin_desvio.get_value()
+    simular(
+        texto, mod_base, mod_portadora, enq, edc,
+        mostrar_etapas_rx,
+        callback_etapas_tx=mostrar_etapas_tx,
+        callback_etapas_canal=mostrar_etapas_canal,
+        media_ruido=media_ruido,
+        desvio_ruido=desvio_ruido,
+    )
 
 # ---------- Construção da janela ----------
 window = Gtk.Window(title="SimulaRede")
-window.set_default_size(900, 680)
+window.set_default_size(900, 760)
 window.connect("destroy", Gtk.main_quit)
 
 root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
@@ -84,7 +105,6 @@ root.set_margin_start(20)
 root.set_margin_end(20)
 window.add(root)
 
-# Cabeçalho
 titulo = Gtk.Label(label="SimulaRede")
 titulo.get_style_context().add_class("titulo")
 titulo.set_halign(Gtk.Align.START)
@@ -95,7 +115,6 @@ subtitulo.get_style_context().add_class("eyebrow")
 subtitulo.set_halign(Gtk.Align.START)
 root.pack_start(subtitulo, False, False, 0)
 
-# Linha de entrada de texto
 linha_texto = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_texto, False, False, 0)
 
@@ -109,7 +128,6 @@ button.get_style_context().add_class("enviar")
 button.connect("clicked", on_enviar)
 linha_texto.pack_start(button, False, False, 0)
 
-# Linha de controles (modulação banda-base | portadora | enquadramento | edc)
 linha_controles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_controles, False, False, 0)
 
@@ -153,7 +171,33 @@ for nome in ['nenhum', 'paridade', 'checksum', 'crc', 'hamming']:
 combo_edc.set_active(0)
 linha_controles.pack_start(combo_edc, False, False, 0)
 
-# Painéis TX | RX lado a lado
+linha_ruido = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+root.pack_start(linha_ruido, False, False, 0)
+
+label_ruido_titulo = Gtk.Label(label="ruído gaussiano n(x, σ):")
+label_ruido_titulo.get_style_context().add_class("eyebrow")
+linha_ruido.pack_start(label_ruido_titulo, False, False, 0)
+
+label_media = Gtk.Label(label="x:")
+linha_ruido.pack_start(label_media, False, False, 0)
+
+spin_media = Gtk.SpinButton()
+spin_media.set_range(-5.0, 5.0)
+spin_media.set_increments(0.1, 1.0)
+spin_media.set_digits(2)
+spin_media.set_value(0.0)
+linha_ruido.pack_start(spin_media, False, False, 0)
+
+label_desvio = Gtk.Label(label="σ:")
+linha_ruido.pack_start(label_desvio, False, False, 0)
+
+spin_desvio = Gtk.SpinButton()
+spin_desvio.set_range(0.0, 5.0)
+spin_desvio.set_increments(0.1, 1.0)
+spin_desvio.set_digits(2)
+spin_desvio.set_value(0.0)
+linha_ruido.pack_start(spin_desvio, False, False, 0)
+
 linha_paineis = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
 root.pack_start(linha_paineis, False, False, 0)
 
@@ -191,7 +235,6 @@ painel_rx.pack_start(label_rx_corpo, False, False, 0)
 
 linha_paineis.pack_start(painel_rx, True, True, 0)
 
-# Gráfico
 canvas = FigureCanvas(figura)
 root.pack_start(canvas, True, True, 0)
 
