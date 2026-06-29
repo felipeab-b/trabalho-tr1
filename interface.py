@@ -74,12 +74,34 @@ def mostrar_etapas_rx(etapas):
     )
     GLib.idle_add(label_rx_corpo.set_text, texto_rx)
 
+def on_mod_portadora_changed(combo):
+    """A modulação por portadora só foi projetada para operar sobre o sinal
+    binário (±V) do NRZ-Polar. Manchester e Bipolar produzem sinais com
+    timing/níveis incompatíveis com o mapeamento bit->fase/amplitude usado
+    em ASK/FSK/QPSK/16-QAM, então travamos a banda-base em NRZ-Polar
+    sempre que uma portadora estiver ativa."""
+    portadora_ativa = combo.get_active_text() != 'nenhum'
+    if portadora_ativa:
+        combo_mod_base.set_active(0)  # força 'nrz'
+    combo_mod_base.set_sensitive(not portadora_ativa)
+    label_aviso_base.set_text(
+        "modulação por portadora exige banda-base NRZ-Polar" if portadora_ativa else ""
+    )
+
 def on_enviar(button):
     texto = entry.get_text()
     if not texto:
         return
     mod_base = combo_mod_base.get_active_text()
     mod_portadora = combo_mod_portadora.get_active_text()
+
+    # Segurança extra: mesmo que a GUI trave a escolha, nunca deixa passar
+    # uma combinação incompatível para o simulador.
+    if mod_portadora != 'nenhum' and mod_base != 'nrz':
+        label_rx_corpo.set_text(
+            "✗ combinação inválida: modulação por portadora requer banda-base NRZ-Polar"
+        )
+        return
     enq = combo_enq.get_active_text()
     edc = combo_edc.get_active_text()
     media_ruido = spin_media.get_value()
@@ -146,6 +168,10 @@ for nome in ['nrz', 'manchester', 'bipolar']:
 combo_mod_base.set_active(0)
 linha_controles.pack_start(combo_mod_base, False, False, 0)
 
+label_aviso_base = Gtk.Label(label="")
+label_aviso_base.get_style_context().add_class("aviso")
+linha_controles.pack_start(label_aviso_base, False, False, 0)
+
 label_portadora = Gtk.Label(label="portadora:")
 label_portadora.get_style_context().add_class("eyebrow")
 linha_controles.pack_start(label_portadora, False, False, 0)
@@ -155,6 +181,7 @@ for nome in ['nenhum', 'ask', 'fsk', 'qpsk', 'qam16']:
     combo_mod_portadora.append_text(nome)
 combo_mod_portadora.set_active(0)
 linha_controles.pack_start(combo_mod_portadora, False, False, 0)
+combo_mod_portadora.connect("changed", on_mod_portadora_changed)
 
 label_enq = Gtk.Label(label="quadro:")
 label_enq.get_style_context().add_class("eyebrow")

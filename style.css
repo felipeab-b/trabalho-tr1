@@ -26,6 +26,12 @@ label.eyebrow {
     letter-spacing: 1px;
 }
 
+label.aviso {
+    font-size: 11px;
+    color: #ff7a5b;
+    font-style: italic;
+}
+
 .painel {
     background-color: #22262e;
     border: 1px solid #2d323c;
