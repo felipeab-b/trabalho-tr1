@@ -7,7 +7,7 @@ from canal import iniciar_canal
 
 def simular(texto, mod_base, mod_portadora, enq, edc, callback_rx,
             callback_etapas_tx=None, callback_etapas_canal=None,
-            media_ruido=0.0, desvio_ruido=0.0):
+            media_ruido=0.0, desvio_ruido=0.0, tamanho_max_quadro=512):
 
     thread_rx = threading.Thread(
         target=iniciar_rx,
@@ -19,7 +19,7 @@ def simular(texto, mod_base, mod_portadora, enq, edc, callback_rx,
     )
     thread_tx = threading.Thread(
         target=iniciar_tx,
-        args=(texto, mod_base, mod_portadora, enq, edc, callback_etapas_tx)
+        args=(texto, mod_base, mod_portadora, enq, edc, tamanho_max_quadro, callback_etapas_tx)
     )
 
     thread_rx.start()

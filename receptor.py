@@ -1,8 +1,20 @@
 import json
 import socket
-from registro import MODULACOES_BANDA_BASE, MODULACOES_PORTADORA, ENQUADRAMENTOS, DETECCAO_CORRECAO
+from registro import MODULACOES_BANDA_BASE, MODULACOES_PORTADORA, DETECCAO_CORRECAO
+from camada_enlace.enquadramento.fragmentacao import (
+    desenquadrar_multiplo_contagem,
+    desenquadrar_multiplo_flag_bytes,
+    desenquadrar_multiplo_flag_bits,
+)
 from utils import bits_to_text
 from canal import PORTA_CANAL_PARA_RX
+
+DESENQUADRADORES_MULTIPLOS = {
+    'nenhum': lambda bits: bits,
+    'contagem': desenquadrar_multiplo_contagem,
+    'flag_bytes': desenquadrar_multiplo_flag_bytes,
+    'flag_bits': desenquadrar_multiplo_flag_bits,
+}
 
 TAMANHO_EDC = {
     'paridade': 8,
@@ -14,7 +26,7 @@ TAMANHO_EDC = {
 def iniciar_rx(mod_base, mod_portadora, enq, edc, callback):
     _, decodificar_base = MODULACOES_BANDA_BASE[mod_base]
     _, decodificar_portadora = MODULACOES_PORTADORA[mod_portadora]
-    _, desenquadrar = ENQUADRAMENTOS[enq]
+    desenquadrar_multiplo = DESENQUADRADORES_MULTIPLOS[enq]
     _, verify_edc, tipo_edc = DETECCAO_CORRECAO[edc]
 
     servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -39,7 +51,7 @@ def iniciar_rx(mod_base, mod_portadora, enq, edc, callback):
     if isinstance(quadro_demodulado, list):
         quadro_demodulado = ''.join(quadro_demodulado)
 
-    bits_com_edc = desenquadrar(quadro_demodulado)
+    bits_com_edc = desenquadrar_multiplo(quadro_demodulado)
 
     if tipo_edc == 'correcao':
         bits_finais = verify_edc(bits_com_edc)

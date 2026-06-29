@@ -84,6 +84,7 @@ def on_enviar(button):
     edc = combo_edc.get_active_text()
     media_ruido = spin_media.get_value()
     desvio_ruido = spin_desvio.get_value()
+    tamanho_max = int(spin_tamanho_max.get_value())
     simular(
         texto, mod_base, mod_portadora, enq, edc,
         mostrar_etapas_rx,
@@ -91,6 +92,7 @@ def on_enviar(button):
         callback_etapas_canal=mostrar_etapas_canal,
         media_ruido=media_ruido,
         desvio_ruido=desvio_ruido,
+        tamanho_max_quadro=tamanho_max,
     )
 
 # ---------- Construção da janela ----------
@@ -105,6 +107,7 @@ root.set_margin_start(20)
 root.set_margin_end(20)
 window.add(root)
 
+# Cabeçalho
 titulo = Gtk.Label(label="SimulaRede")
 titulo.get_style_context().add_class("titulo")
 titulo.set_halign(Gtk.Align.START)
@@ -115,6 +118,7 @@ subtitulo.get_style_context().add_class("eyebrow")
 subtitulo.set_halign(Gtk.Align.START)
 root.pack_start(subtitulo, False, False, 0)
 
+# Linha de entrada de texto
 linha_texto = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_texto, False, False, 0)
 
@@ -128,6 +132,7 @@ button.get_style_context().add_class("enviar")
 button.connect("clicked", on_enviar)
 linha_texto.pack_start(button, False, False, 0)
 
+# Linha de controles (modulação banda-base | portadora | enquadramento | edc)
 linha_controles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_controles, False, False, 0)
 
@@ -171,6 +176,7 @@ for nome in ['nenhum', 'paridade', 'checksum', 'crc', 'hamming']:
 combo_edc.set_active(0)
 linha_controles.pack_start(combo_edc, False, False, 0)
 
+# Linha de controles de ruído
 linha_ruido = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_ruido, False, False, 0)
 
@@ -198,6 +204,18 @@ spin_desvio.set_digits(2)
 spin_desvio.set_value(0.0)
 linha_ruido.pack_start(spin_desvio, False, False, 0)
 
+label_tamanho_max = Gtk.Label(label="tam. máx. quadro (bits):")
+label_tamanho_max.get_style_context().add_class("eyebrow")
+linha_ruido.pack_start(label_tamanho_max, False, False, 0)
+
+spin_tamanho_max = Gtk.SpinButton()
+spin_tamanho_max.set_range(8.0, 8192.0)
+spin_tamanho_max.set_increments(8.0, 64.0)
+spin_tamanho_max.set_digits(0)
+spin_tamanho_max.set_value(512.0)
+linha_ruido.pack_start(spin_tamanho_max, False, False, 0)
+
+# Painéis TX | RX lado a lado
 linha_paineis = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
 root.pack_start(linha_paineis, False, False, 0)
 
@@ -235,6 +253,7 @@ painel_rx.pack_start(label_rx_corpo, False, False, 0)
 
 linha_paineis.pack_start(painel_rx, True, True, 0)
 
+# Gráfico (TX vs canal com ruído)
 canvas = FigureCanvas(figura)
 root.pack_start(canvas, True, True, 0)
 
