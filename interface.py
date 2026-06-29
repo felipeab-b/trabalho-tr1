@@ -29,34 +29,44 @@ matplotlib.rcParams.update({
     'font.family': 'monospace',
 })
 
-figura = Figure(figsize=(6, 3.2))
-ax_tx = figura.add_subplot(2, 1, 1)
-ax_rx = figura.add_subplot(2, 1, 2)
+figura = Figure(figsize=(8, 5.2))
+ax_tx_base = figura.add_subplot(2, 2, 1)
+ax_canal = figura.add_subplot(2, 2, 2)
+ax_tx_port = figura.add_subplot(2, 2, 3)
+ax_rx_base = figura.add_subplot(2, 2, 4)
 
-def plotar_sinais(sinal_tx, sinal_rx):
-    # Sem portadora, o sinal é digital (1 amostra por bit) e precisa ser
-    # desenhado em patamares (onda quadrada). Com portadora, o sinal já é
-    # uma senoide contínua amostrada e deve ser desenhado como linha normal.
+
+def _plot_em(ax, sinal, titulo, cor, em_patamar):
+    ax.clear()
+    if sinal is None or len(sinal) == 0:
+        ax.set_title(titulo, color='#e6e9ef', fontsize=9, fontfamily='monospace')
+        ax.grid(True, alpha=0.3)
+        return
+    dados = list(sinal) + [sinal[-1]] if em_patamar else sinal
+    estilo = 'steps-post' if em_patamar else 'default'
+    ax.plot(dados, color=cor, linewidth=1.3, drawstyle=estilo)
+    ax.set_title(titulo, color='#e6e9ef', fontsize=9, fontfamily='monospace')
+    ax.grid(True, alpha=0.3)
+
+
+def plotar_pipeline(tx_base, tx_portadora, canal_ruidoso, rx_base):
     sem_portadora = combo_mod_portadora.get_active_text() == 'nenhum'
-    estilo = 'steps-post' if sem_portadora else 'default'
 
-    ax_tx.clear()
-    tx_plot = list(sinal_tx) + [sinal_tx[-1]] if sem_portadora and len(sinal_tx) > 0 else sinal_tx
-    ax_tx.plot(tx_plot, color='#5b8cff', linewidth=1.4, drawstyle=estilo)
-    ax_tx.set_title("sinal TX (antes do ruído)", color='#e6e9ef', fontsize=10, fontfamily='monospace')
-    ax_tx.grid(True, alpha=0.3)
-
-    ax_rx.clear()
-    rx_plot = list(sinal_rx) + [sinal_rx[-1]] if sem_portadora and len(sinal_rx) > 0 else sinal_rx
-    ax_rx.plot(rx_plot, color='#ff7a5b', linewidth=1.4, drawstyle=estilo)
-    ax_rx.set_title("sinal no canal (após ruído)", color='#e6e9ef', fontsize=10, fontfamily='monospace')
-    ax_rx.grid(True, alpha=0.3)
+    # banda-base é sempre 1 amostra por bit -> onda quadrada (patamar)
+    _plot_em(ax_tx_base, tx_base, "TX · banda-base", '#5b8cff', em_patamar=True)
+    # se não houver portadora, o sinal "portadora" é o próprio banda-base;
+    # com portadora, é uma senoide contínua amostrada (sem patamar)
+    _plot_em(ax_tx_port, tx_portadora, "TX · portadora (enviado ao canal)", '#7a9bff',
+             em_patamar=sem_portadora)
+    _plot_em(ax_canal, canal_ruidoso, "canal · com ruído", '#ff7a5b',
+              em_patamar=sem_portadora)
+    _plot_em(ax_rx_base, rx_base, "RX · banda-base recuperado", '#5bffb0', em_patamar=True)
 
     figura.tight_layout()
     figura.canvas.draw()
 
 # ---------- Lógica ----------
-ultimo_sinal_tx = {'valor': []}
+pipeline = {'tx_base': [], 'tx_portadora': [], 'canal_ruidoso': []}
 
 def mostrar_etapas_tx(etapas):
     texto_tx = (
@@ -65,11 +75,12 @@ def mostrar_etapas_tx(etapas):
         f"+ edc:    {etapas['bits_com_edc']}\n"
         f"quadro:   {etapas['quadro']}"
     )
-    ultimo_sinal_tx['valor'] = etapas['sinal']
+    pipeline['tx_base'] = etapas['sinal_base']
+    pipeline['tx_portadora'] = etapas['sinal']
     GLib.idle_add(label_tx_corpo.set_text, texto_tx)
 
 def mostrar_etapas_canal(etapas):
-    GLib.idle_add(plotar_sinais, ultimo_sinal_tx['valor'], etapas['sinal_ruidoso'])
+    pipeline['canal_ruidoso'] = etapas['sinal_ruidoso']
 
 def mostrar_etapas_rx(etapas):
     status = "✓ ok" if etapas['edc_ok'] else "✗ erro detectado"
@@ -81,6 +92,13 @@ def mostrar_etapas_rx(etapas):
         f"texto:    {etapas['texto_final']}"
     )
     GLib.idle_add(label_rx_corpo.set_text, texto_rx)
+    GLib.idle_add(
+        plotar_pipeline,
+        pipeline['tx_base'],
+        pipeline['tx_portadora'],
+        pipeline['canal_ruidoso'],
+        etapas['sinal_base_recuperado'],
+    )
 
 def on_mod_portadora_changed(combo):
     """A modulação por portadora só foi projetada para operar sobre o sinal
