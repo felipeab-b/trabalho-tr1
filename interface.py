@@ -34,13 +34,21 @@ ax_tx = figura.add_subplot(2, 1, 1)
 ax_rx = figura.add_subplot(2, 1, 2)
 
 def plotar_sinais(sinal_tx, sinal_rx):
+    # Sem portadora, o sinal é digital (1 amostra por bit) e precisa ser
+    # desenhado em patamares (onda quadrada). Com portadora, o sinal já é
+    # uma senoide contínua amostrada e deve ser desenhado como linha normal.
+    sem_portadora = combo_mod_portadora.get_active_text() == 'nenhum'
+    estilo = 'steps-post' if sem_portadora else 'default'
+
     ax_tx.clear()
-    ax_tx.plot(sinal_tx, color='#5b8cff', linewidth=1.2)
+    tx_plot = list(sinal_tx) + [sinal_tx[-1]] if sem_portadora and len(sinal_tx) > 0 else sinal_tx
+    ax_tx.plot(tx_plot, color='#5b8cff', linewidth=1.4, drawstyle=estilo)
     ax_tx.set_title("sinal TX (antes do ruído)", color='#e6e9ef', fontsize=10, fontfamily='monospace')
     ax_tx.grid(True, alpha=0.3)
 
     ax_rx.clear()
-    ax_rx.plot(sinal_rx, color='#ff7a5b', linewidth=1.2)
+    rx_plot = list(sinal_rx) + [sinal_rx[-1]] if sem_portadora and len(sinal_rx) > 0 else sinal_rx
+    ax_rx.plot(rx_plot, color='#ff7a5b', linewidth=1.4, drawstyle=estilo)
     ax_rx.set_title("sinal no canal (após ruído)", color='#e6e9ef', fontsize=10, fontfamily='monospace')
     ax_rx.grid(True, alpha=0.3)
 
