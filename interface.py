@@ -2,7 +2,7 @@ import gi
 import matplotlib
 matplotlib.use('GTK3Agg')
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, Pango
 from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCanvas
 from matplotlib.figure import Figure
 from simulador import simular
@@ -258,7 +258,10 @@ painel_tx.pack_start(label_tx_titulo, False, False, 0)
 label_tx_corpo = Gtk.Label(label="aguardando envio...")
 label_tx_corpo.set_halign(Gtk.Align.START)
 label_tx_corpo.set_line_wrap(True)
+label_tx_corpo.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+label_tx_corpo.set_max_width_chars(60)
 label_tx_corpo.set_xalign(0)
+label_tx_corpo.set_selectable(True)
 painel_tx.pack_start(label_tx_corpo, False, False, 0)
 
 linha_paineis.pack_start(painel_tx, True, True, 0)
@@ -275,7 +278,10 @@ painel_rx.pack_start(label_rx_titulo, False, False, 0)
 label_rx_corpo = Gtk.Label(label="aguardando recepção...")
 label_rx_corpo.set_halign(Gtk.Align.START)
 label_rx_corpo.set_line_wrap(True)
+label_rx_corpo.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+label_rx_corpo.set_max_width_chars(60)
 label_rx_corpo.set_xalign(0)
+label_rx_corpo.set_selectable(True)
 painel_rx.pack_start(label_rx_corpo, False, False, 0)
 
 linha_paineis.pack_start(painel_rx, True, True, 0)
