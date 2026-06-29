@@ -65,33 +65,112 @@ def plotar_pipeline(tx_base, tx_portadora, canal_ruidoso, rx_base):
     figura.tight_layout()
     figura.canvas.draw()
 
+# ---------- Destaque de bits adicionados (EDC e enquadramento) ----------
+COR_EDC = '#ffd166'      # bits de detecção/correção de erro
+COR_QUADRO = '#ff5b9c'   # bits de enquadramento (header/flag/escape)
+
+def _esc(s):
+    return GLib.markup_escape_text(str(s))
+
+def _span(texto, cor):
+    return f'<span foreground="{cor}">{_esc(texto)}</span>' if texto else ''
+
+def markup_bits_com_edc(edc, bits_com_edc):
+    """Markup destacando os bits de detecção/correção adicionados aos
+    bits originais."""
+    if edc == 'nenhum':
+        return _esc(bits_com_edc)
+    if edc == 'hamming':
+        # Hamming(7,4): paridade intercalada nas posições 0,1,3 de cada
+        # bloco de 7 bits (p1,p2,d1,p3,d2,d3,d4).
+        partes = []
+        for i in range(0, len(bits_com_edc), 7):
+            bloco = bits_com_edc[i:i+7]
+            for j, bit in enumerate(bloco):
+                partes.append(_span(bit, COR_EDC) if j in (0, 1, 3) else _esc(bit))
+        return ''.join(partes)
+    # paridade/checksum/crc: bits adicionados como sufixo fixo ao final
+    tamanho = {'paridade': 8, 'checksum': 8, 'crc': 32}.get(edc, 0)
+    if tamanho == 0 or len(bits_com_edc) < tamanho:
+        return _esc(bits_com_edc)
+    dados, edc_bits = bits_com_edc[:-tamanho], bits_com_edc[-tamanho:]
+    return _esc(dados) + _span(edc_bits, COR_EDC)
+
+def markup_quadro(bits_com_edc, enq, quadro):
+    """Markup destacando os bits adicionados pelo enquadramento (header de
+    contagem, FLAGs e bytes/bits de escape), reconstruindo a mesma lógica
+    usada para enquadrar `bits_com_edc`."""
+    if enq == 'nenhum' or not quadro:
+        return _esc(quadro)
+
+    if enq == 'contagem':
+        header, payload = quadro[:16], quadro[16:]
+        return _span(header, COR_QUADRO) + _esc(payload)
+
+    if enq == 'flag_bytes':
+        FLAG, ESC = '01111110', '00011101'
+        partes = [_span(FLAG, COR_QUADRO)]
+        for i in range(0, len(bits_com_edc), 8):
+            byte = bits_com_edc[i:i+8]
+            if byte == FLAG:
+                partes.append(_span(ESC + FLAG, COR_QUADRO))
+            elif byte == ESC:
+                partes.append(_span(ESC + ESC, COR_QUADRO))
+            else:
+                partes.append(_esc(byte))
+        partes.append(_span(FLAG, COR_QUADRO))
+        return ''.join(partes)
+
+    if enq == 'flag_bits':
+        FLAG = '01111110'
+        partes = [_span(FLAG, COR_QUADRO)]
+        contagem = 0
+        for bit in bits_com_edc:
+            partes.append(_esc(bit))
+            contagem = contagem + 1 if bit == '1' else 0
+            if contagem == 5:
+                partes.append(_span('0', COR_QUADRO))
+                contagem = 0
+        partes.append(_span(FLAG, COR_QUADRO))
+        return ''.join(partes)
+
+    return _esc(quadro)
+
 # ---------- Lógica ----------
 pipeline = {'tx_base': [], 'tx_portadora': [], 'canal_ruidoso': []}
 
 def mostrar_etapas_tx(etapas):
+    edc = combo_edc.get_active_text()
+    enq = combo_enq.get_active_text()
+    edc_markup = markup_bits_com_edc(edc, etapas['bits_com_edc'])
+    quadro_markup = markup_quadro(etapas['bits_com_edc'], enq, etapas['quadro'])
     texto_tx = (
-        f"texto:    {etapas['texto_original']}\n"
-        f"bits:     {etapas['bits']}\n"
-        f"+ edc:    {etapas['bits_com_edc']}\n"
-        f"quadro:   {etapas['quadro']}"
+        f"texto:    {_esc(etapas['texto_original'])}\n"
+        f"bits:     {_esc(etapas['bits'])}\n"
+        f"+ edc:    {edc_markup}\n"
+        f"quadro:   {quadro_markup}"
     )
     pipeline['tx_base'] = etapas['sinal_base']
     pipeline['tx_portadora'] = etapas['sinal']
-    GLib.idle_add(label_tx_corpo.set_text, texto_tx)
+    GLib.idle_add(label_tx_corpo.set_markup, texto_tx)
 
 def mostrar_etapas_canal(etapas):
     pipeline['canal_ruidoso'] = etapas['sinal_ruidoso']
 
 def mostrar_etapas_rx(etapas):
+    edc = combo_edc.get_active_text()
+    enq = combo_enq.get_active_text()
     status = "✓ ok" if etapas['edc_ok'] else "✗ erro detectado"
+    quadro_markup = markup_quadro(etapas['bits_com_edc'], enq, etapas['quadro_demodulado'])
+    edc_markup = markup_bits_com_edc(edc, etapas['bits_com_edc'])
     texto_rx = (
-        f"quadro:   {etapas['quadro_demodulado']}\n"
-        f"+ edc:    {etapas['bits_com_edc']}\n"
-        f"edc:      {status}\n"
-        f"bits:     {etapas['bits_finais']}\n"
-        f"texto:    {etapas['texto_final']}"
+        f"quadro:   {quadro_markup}\n"
+        f"+ edc:    {edc_markup}\n"
+        f"edc:      {_esc(status)}\n"
+        f"bits:     {_esc(etapas['bits_finais'])}\n"
+        f"texto:    {_esc(etapas['texto_final'])}"
     )
-    GLib.idle_add(label_rx_corpo.set_text, texto_rx)
+    GLib.idle_add(label_rx_corpo.set_markup, texto_rx)
     GLib.idle_add(
         plotar_pipeline,
         pipeline['tx_base'],
