@@ -1,8 +1,11 @@
 import json
+import socket
 from registro import MODULACOES_BANDA_BASE, MODULACOES_PORTADORA, ENQUADRAMENTOS, DETECCAO_CORRECAO
 from utils import text_to_bits
+from canal import PORTA_TX_PARA_CANAL
 
-def iniciar_tx(sock, texto, mod_base, mod_portadora, enq, edc, callback_etapas=None):
+
+def iniciar_tx(texto, mod_base, mod_portadora, enq, edc, callback_etapas=None):
     codificar_base, _ = MODULACOES_BANDA_BASE[mod_base]
     codificar_portadora, _ = MODULACOES_PORTADORA[mod_portadora]
     enquadrar, _ = ENQUADRAMENTOS[enq]
@@ -26,6 +29,7 @@ def iniciar_tx(sock, texto, mod_base, mod_portadora, enq, edc, callback_etapas=N
     if callback_etapas:
         callback_etapas(etapas)
 
-    dados = json.dumps(sinal).encode('utf-8')
-    sock.sendall(dados)
-    sock.close()
+    cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    cliente.connect(('localhost', PORTA_TX_PARA_CANAL))
+    cliente.sendall(json.dumps(sinal).encode('utf-8'))
+    cliente.close()
