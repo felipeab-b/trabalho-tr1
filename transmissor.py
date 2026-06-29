@@ -1,5 +1,6 @@
 import json
 import socket
+import time
 from registro import MODULACOES_BANDA_BASE, MODULACOES_PORTADORA, DETECCAO_CORRECAO
 from camada_enlace.enquadramento.fragmentacao import (
     enquadrar_multiplo_contagem,
@@ -17,17 +18,23 @@ ENQUADRADORES_MULTIPLOS = {
 }
 
 
+def _log(msg):
+    print(f"[{time.strftime('%H:%M:%S')}] [TX] {msg}")
+
+
 def iniciar_tx(texto, mod_base, mod_portadora, enq, edc, tamanho_max_quadro=512, callback_etapas=None):
     codificar_base, _ = MODULACOES_BANDA_BASE[mod_base]
     codificar_portadora, _ = MODULACOES_PORTADORA[mod_portadora]
     enquadrar_multiplo = ENQUADRADORES_MULTIPLOS[enq]
     add_edc, _, _ = DETECCAO_CORRECAO[edc]
 
+    _log(f"processando texto: {texto!r}")
     bits = text_to_bits(texto)
     bits_com_edc = add_edc(bits)
     quadro = enquadrar_multiplo(bits_com_edc, tamanho_max_quadro)
     sinal_base = codificar_base(quadro)
     sinal = codificar_portadora(sinal_base)
+    _log(f"pipeline completo: {len(bits)} bits -> {len(sinal)} amostras de sinal")
 
     etapas = {
         'texto_original': texto,
@@ -42,6 +49,9 @@ def iniciar_tx(texto, mod_base, mod_portadora, enq, edc, tamanho_max_quadro=512,
         callback_etapas(etapas)
 
     cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    _log(f"conectando ao Canal na porta {PORTA_TX_PARA_CANAL}...")
     cliente.connect(('localhost', PORTA_TX_PARA_CANAL))
+    _log("conectado! enviando sinal")
     cliente.sendall(json.dumps(sinal).encode('utf-8'))
     cliente.close()
+    _log("envio concluido, socket fechado")

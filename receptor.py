@@ -1,5 +1,6 @@
 import json
 import socket
+import time
 from registro import MODULACOES_BANDA_BASE, MODULACOES_PORTADORA, DETECCAO_CORRECAO
 from camada_enlace.enquadramento.fragmentacao import (
     desenquadrar_multiplo_contagem,
@@ -23,6 +24,10 @@ TAMANHO_EDC = {
 }
 
 
+def _log(msg):
+    print(f"[{time.strftime('%H:%M:%S')}] [RX] {msg}")
+
+
 def iniciar_rx(mod_base, mod_portadora, enq, edc, callback):
     _, decodificar_base = MODULACOES_BANDA_BASE[mod_base]
     _, decodificar_portadora = MODULACOES_PORTADORA[mod_portadora]
@@ -33,8 +38,11 @@ def iniciar_rx(mod_base, mod_portadora, enq, edc, callback):
     servidor.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     servidor.bind(('localhost', PORTA_CANAL_PARA_RX))
     servidor.listen(1)
+    _log(f"servidor TCP escutando na porta {PORTA_CANAL_PARA_RX} (aguardando Canal)")
 
     conn, addr = servidor.accept()
+    _log(f"conexao aceita do Canal: {addr}")
+
     dados = b''
     while True:
         parte = conn.recv(65536)
@@ -43,6 +51,7 @@ def iniciar_rx(mod_base, mod_portadora, enq, edc, callback):
         dados += parte
     conn.close()
     servidor.close()
+    _log(f"recebidos {len(dados)} bytes do Canal, conexao fechada")
 
     sinal_recebido = json.loads(dados.decode('utf-8'))
 
@@ -61,6 +70,7 @@ def iniciar_rx(mod_base, mod_portadora, enq, edc, callback):
         bits_finais = bits_com_edc[:-TAMANHO_EDC[edc]]
 
     texto_final = bits_to_text(bits_finais)
+    _log(f"texto recuperado: {texto_final!r} (edc_ok={edc_ok})")
 
     etapas = {
         'sinal_recebido': sinal_recebido,
