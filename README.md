@@ -136,7 +136,6 @@ trabalho-tr1/
 ├── transmissor.py           # Thread TX — pipeline completo de envio
 ├── canal.py                 # Servidor/cliente TCP do canal + ruído gaussiano
 ├── receptor.py              # Thread RX — pipeline completo de recepção
-├── protocolo_tcp.py         # Protocolo de mensagens TCP com length-prefix
 ├── registro.py              # Mapeamento entre nomes de protocolos e suas funções
 ├── utils.py                 # Conversão entre texto e bits
 ├── style.css                # Estilo visual da interface
