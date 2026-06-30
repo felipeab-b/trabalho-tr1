@@ -8,8 +8,7 @@
 > Simulador das camadas Física e de Enlace do modelo OSI, implementando protocolos de modulação banda-base, modulação por portadora, enquadramento de dados, fragmentação de quadros, detecção e correção de erros, ruído gaussiano no canal e interface gráfica GTK.
 
 **Disciplina:** Teleinformática e Redes 1 — CIC/UnB
-**Professor:** Marcelo Antonio Marotta
-**Aluno:** Felipe Avelar Borborema Ferreira — 241025210
+**Aluno:** Felipe Avelar Borborema Ferreira
 
 ---
 
