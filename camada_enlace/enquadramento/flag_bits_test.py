@@ -1,4 +1,3 @@
-# flag_bits_test.py
 from camada_enlace.enquadramento.flag_bits import enquadrar_flag_bits, desenquadrar_flag_bits
 from utils import bits_to_text, text_to_bits
 

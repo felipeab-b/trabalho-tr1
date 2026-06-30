@@ -7,7 +7,6 @@ from matplotlib.backends.backend_gtk3agg import FigureCanvasGTK3Agg as FigureCan
 from matplotlib.figure import Figure
 from simulador import simular
 
-# ---------- Estilo (CSS) ----------
 def carregar_css():
     css_provider = Gtk.CssProvider()
     css_provider.load_from_path("style.css")
@@ -16,7 +15,6 @@ def carregar_css():
         screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
     )
 
-# ---------- Gráfico (estilo dark) ----------
 matplotlib.rcParams.update({
     'figure.facecolor': '#1a1d23',
     'axes.facecolor': '#22262e',
@@ -52,10 +50,7 @@ def _plot_em(ax, sinal, titulo, cor, em_patamar):
 def plotar_pipeline(tx_base, tx_portadora, canal_ruidoso, rx_base):
     sem_portadora = combo_mod_portadora.get_active_text() == 'nenhum'
 
-    # banda-base é sempre 1 amostra por bit -> onda quadrada (patamar)
     _plot_em(ax_tx_base, tx_base, "TX · banda-base", '#5b8cff', em_patamar=True)
-    # se não houver portadora, o sinal "portadora" é o próprio banda-base;
-    # com portadora, é uma senoide contínua amostrada (sem patamar)
     _plot_em(ax_tx_port, tx_portadora, "TX · portadora (enviado ao canal)", '#7a9bff',
              em_patamar=sem_portadora)
     _plot_em(ax_canal, canal_ruidoso, "canal · com ruído", '#ff7a5b',
@@ -65,9 +60,8 @@ def plotar_pipeline(tx_base, tx_portadora, canal_ruidoso, rx_base):
     figura.tight_layout()
     figura.canvas.draw()
 
-# ---------- Destaque de bits adicionados (EDC e enquadramento) ----------
-COR_EDC = '#ffd166'      # bits de detecção/correção de erro
-COR_QUADRO = '#ff5b9c'   # bits de enquadramento (header/flag/escape)
+COR_EDC = '#ffd166'      
+COR_QUADRO = '#ff5b9c'   
 
 def _esc(s):
     return GLib.markup_escape_text(str(s))
@@ -81,15 +75,12 @@ def markup_bits_com_edc(edc, bits_com_edc):
     if edc == 'nenhum':
         return _esc(bits_com_edc)
     if edc == 'hamming':
-        # Hamming(7,4): paridade intercalada nas posições 0,1,3 de cada
-        # bloco de 7 bits (p1,p2,d1,p3,d2,d3,d4).
         partes = []
         for i in range(0, len(bits_com_edc), 7):
             bloco = bits_com_edc[i:i+7]
             for j, bit in enumerate(bloco):
                 partes.append(_span(bit, COR_EDC) if j in (0, 1, 3) else _esc(bit))
         return ''.join(partes)
-    # paridade/checksum/crc: bits adicionados como sufixo fixo ao final
     tamanho = {'paridade': 8, 'checksum': 8, 'crc': 32}.get(edc, 0)
     if tamanho == 0 or len(bits_com_edc) < tamanho:
         return _esc(bits_com_edc)
@@ -97,9 +88,6 @@ def markup_bits_com_edc(edc, bits_com_edc):
     return _esc(dados) + _span(edc_bits, COR_EDC)
 
 def markup_quadro(bits_com_edc, enq, quadro):
-    """Markup destacando os bits adicionados pelo enquadramento (header de
-    contagem, FLAGs e bytes/bits de escape), reconstruindo a mesma lógica
-    usada para enquadrar `bits_com_edc`."""
     if enq == 'nenhum' or not quadro:
         return _esc(quadro)
 
@@ -136,7 +124,6 @@ def markup_quadro(bits_com_edc, enq, quadro):
 
     return _esc(quadro)
 
-# ---------- Lógica ----------
 pipeline = {'tx_base': [], 'tx_portadora': [], 'canal_ruidoso': []}
 
 def mostrar_etapas_tx(etapas):
@@ -180,14 +167,9 @@ def mostrar_etapas_rx(etapas):
     )
 
 def on_mod_portadora_changed(combo):
-    """A modulação por portadora só foi projetada para operar sobre o sinal
-    binário (±V) do NRZ-Polar. Manchester e Bipolar produzem sinais com
-    timing/níveis incompatíveis com o mapeamento bit->fase/amplitude usado
-    em ASK/FSK/QPSK/16-QAM, então travamos a banda-base em NRZ-Polar
-    sempre que uma portadora estiver ativa."""
     portadora_ativa = combo.get_active_text() != 'nenhum'
     if portadora_ativa:
-        combo_mod_base.set_active(0)  # força 'nrz'
+        combo_mod_base.set_active(0) 
     combo_mod_base.set_sensitive(not portadora_ativa)
     label_aviso_base.set_text(
         "modulação por portadora exige banda-base NRZ-Polar" if portadora_ativa else ""
@@ -200,8 +182,6 @@ def on_enviar(button):
     mod_base = combo_mod_base.get_active_text()
     mod_portadora = combo_mod_portadora.get_active_text()
 
-    # Segurança extra: mesmo que a GUI trave a escolha, nunca deixa passar
-    # uma combinação incompatível para o simulador.
     if mod_portadora != 'nenhum' and mod_base != 'nrz':
         label_rx_corpo.set_text(
             "✗ combinação inválida: modulação por portadora requer banda-base NRZ-Polar"
@@ -222,7 +202,6 @@ def on_enviar(button):
         tamanho_max_quadro=tamanho_max,
     )
 
-# ---------- Construção da janela ----------
 window = Gtk.Window(title="SimulaRede")
 window.set_default_size(900, 760)
 window.connect("destroy", Gtk.main_quit)
@@ -234,7 +213,6 @@ root.set_margin_start(20)
 root.set_margin_end(20)
 window.add(root)
 
-# Cabeçalho
 titulo = Gtk.Label(label="SimulaRede")
 titulo.get_style_context().add_class("titulo")
 titulo.set_halign(Gtk.Align.START)
@@ -245,7 +223,6 @@ subtitulo.get_style_context().add_class("eyebrow")
 subtitulo.set_halign(Gtk.Align.START)
 root.pack_start(subtitulo, False, False, 0)
 
-# Linha de entrada de texto
 linha_texto = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_texto, False, False, 0)
 
@@ -259,7 +236,6 @@ button.get_style_context().add_class("enviar")
 button.connect("clicked", on_enviar)
 linha_texto.pack_start(button, False, False, 0)
 
-# Linha de controles (modulação banda-base | portadora | enquadramento | edc)
 linha_controles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_controles, False, False, 0)
 
@@ -308,7 +284,6 @@ for nome in ['nenhum', 'paridade', 'checksum', 'crc', 'hamming']:
 combo_edc.set_active(0)
 linha_controles.pack_start(combo_edc, False, False, 0)
 
-# Linha de controles de ruído
 linha_ruido = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 root.pack_start(linha_ruido, False, False, 0)
 
@@ -347,7 +322,6 @@ spin_tamanho_max.set_digits(0)
 spin_tamanho_max.set_value(512.0)
 linha_ruido.pack_start(spin_tamanho_max, False, False, 0)
 
-# Painéis TX | RX lado a lado
 linha_paineis = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
 root.pack_start(linha_paineis, False, False, 0)
 
@@ -391,7 +365,6 @@ painel_rx.pack_start(label_rx_corpo, False, False, 0)
 
 linha_paineis.pack_start(painel_rx, True, True, 0)
 
-# Gráfico (TX vs canal com ruído)
 canvas = FigureCanvas(figura)
 root.pack_start(canvas, True, True, 0)
 

@@ -5,7 +5,7 @@ from camada_fisica.banda_base.nrz_polar import codificar_nrz, decodificar_nrz
 
 AMOSTRAS_POR_BIT = 50
 
-bits = "00011110"  # gera os 4 simbolos QPSK diferentes: 00, 01, 11, 10
+bits = "00011110"  
 
 sinal_base = codificar_nrz(bits)
 sinal_qpsk = codificar_qpsk(sinal_base)

@@ -1,4 +1,3 @@
-# manchester_test.py
 from camada_fisica.banda_base.manchester import codificar_manchester, decodificar_manchester
 from utils import bits_to_text, text_to_bits
 
